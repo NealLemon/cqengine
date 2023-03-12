@@ -335,6 +335,11 @@ public class QueryFactory {
         return new StringMatchesRegex<O, A>(attribute, Pattern.compile(regex));
     }
 
+    public static <O, A extends String> PathMatches<O, A> matchesPath(Attribute<O, A> attribute, String path) {
+        return new PathMatches<O, A>(attribute, path);
+    }
+
+
     /**
      * Creates an {@link Has} query which asserts that an attribute has a value (is not null).
      * <p/>

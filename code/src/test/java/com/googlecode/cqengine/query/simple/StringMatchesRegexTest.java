@@ -29,7 +29,20 @@ import static org.junit.Assert.assertEquals;
 
 public class StringMatchesRegexTest {
 
+
     @Test
+    public void testPathMatchesRegex() {
+        Query<String> query = matchesPath(selfAttribute(String.class), "/api/v1/a/path1/c/asd");
+        IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
+        indexedCollection.addAll(asList("/api/v1/a/*/b","/api/v1/a/[a-zA-Z0-9]+","/api/v1/a/*"));
+        IndexedCollection<String> collection = indexedCollection;
+        ResultSet<String> results = collection.retrieve(query);
+        for (String match : results) {
+            System.out.println(match); // TOAST, TEST, TT
+        }
+    }
+
+
     public void testStringMatchesRegex() {
         Query<String> query = matchesRegex(selfAttribute(String.class), "f.*");
         IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
