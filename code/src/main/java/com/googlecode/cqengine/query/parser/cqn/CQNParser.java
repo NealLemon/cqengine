@@ -17,14 +17,16 @@ package com.googlecode.cqengine.query.parser.cqn;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.common.ParseResult;
 import com.googlecode.cqengine.query.parser.common.QueryParser;
-import com.googlecode.cqengine.query.parser.common.InvalidQueryException;
 import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarLexer;
 import com.googlecode.cqengine.query.parser.cqn.grammar.CQNGrammarParser;
-import com.googlecode.cqengine.query.parser.cqn.support.*;
+import com.googlecode.cqengine.query.parser.cqn.support.CQNAntlrListener;
+import com.googlecode.cqengine.query.parser.cqn.support.FallbackValueParser;
 import com.googlecode.cqengine.query.parser.cqn.support.StringParser;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.util.Map;

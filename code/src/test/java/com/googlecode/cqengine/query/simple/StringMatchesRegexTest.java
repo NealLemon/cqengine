@@ -21,6 +21,11 @@ import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.resultset.ResultSet;
 import org.junit.Test;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.cqengine.query.QueryFactory.*;
 import static java.util.Arrays.asList;
@@ -29,20 +34,31 @@ import static org.junit.Assert.assertEquals;
 
 public class StringMatchesRegexTest {
 
-
+    private PathPatternParser pathPatternParser = new PathPatternParser();
     @Test
     public void testPathMatchesRegex() {
-        Query<String> query = matchesPath(selfAttribute(String.class), "/api/v1/a/path1/c/asd");
-        IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();
-        indexedCollection.addAll(asList("/api/v1/a/*/b","/api/v1/a/[a-zA-Z0-9]+","/api/v1/a/*"));
-        IndexedCollection<String> collection = indexedCollection;
-        ResultSet<String> results = collection.retrieve(query);
-        for (String match : results) {
+        Query<RoutePath> query = matchesPath(RoutePath.REQUEST_PATH, "/api/v1/a");
+        IndexedCollection<RoutePath> indexedCollection = new ConcurrentIndexedCollection<RoutePath>();
+        List<PathPattern> patternList1 = new ArrayList<>();
+        List<PathPattern> patternList2 = new ArrayList<>();
+        PathPattern pathPattern1 = this.pathPatternParser.parse("/api/v1/a/*");
+        PathPattern pathPattern2 = this.pathPatternParser.parse("/api/v1/{name}");
+        patternList1.add(pathPattern1);
+        patternList2.add(pathPattern2);
+        RoutePath routePath1 = new RoutePath(patternList1);
+        RoutePath routePath2 = new RoutePath(patternList2);
+        indexedCollection.add(routePath1);
+        indexedCollection.add(routePath2);
+      //  indexedCollection.addAll(asList("/api/v1/a/*/b","/api/v1/a/[a-zA-Z0-9]+","/api/v1/a/*"));
+        IndexedCollection<RoutePath> collection = indexedCollection;
+        ResultSet<RoutePath> results = collection.retrieve(query);
+        for (RoutePath match : results) {
             System.out.println(match); // TOAST, TEST, TT
         }
     }
 
 
+    @Test
     public void testStringMatchesRegex() {
         Query<String> query = matchesRegex(selfAttribute(String.class), "f.*");
         IndexedCollection<String> indexedCollection = new ConcurrentIndexedCollection<String>();

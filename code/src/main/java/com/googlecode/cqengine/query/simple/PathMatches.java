@@ -18,18 +18,16 @@ package com.googlecode.cqengine.query.simple;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.util.pattern.PathPattern;
 
 /**
- * Asserts that an attribute's value matches a regular expression.
- * <p/>
- * To accelerate {@code matchesRegex(...)} queries, add a Standing Query Index on {@code matchesRegex(...)}.
- *
- * @author Niall Gallagher, Silvano Riz
+ * Asserts uri {link spring cloud gateway PathRoutePredicateFactory}.
+ * @author Neal
+ * @param <O>
+ * @param <A>
  */
-public class PathMatches<O, A extends String> extends SimpleQuery<O, A> {
+public class PathMatches<O, A extends PathPattern> extends SimpleQuery<O, A> {
 
     private final String path;
 
@@ -48,14 +46,16 @@ public class PathMatches<O, A extends String> extends SimpleQuery<O, A> {
 
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        PathContainer requestUri = PathContainer.parsePath(path);
         A attributeValue = attribute.getValue(object, queryOptions);
-        return matchesValue(attributeValue, queryOptions);
+        return matchesPath(attributeValue, queryOptions, requestUri);
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
+        PathContainer requestUri = PathContainer.parsePath(path);
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
-            if (matchesValue(attributeValue, queryOptions)) {
+            if (matchesPath(attributeValue, queryOptions,requestUri)) {
                 return true;
             }
         }
@@ -70,10 +70,8 @@ public class PathMatches<O, A extends String> extends SimpleQuery<O, A> {
     }
 
     @SuppressWarnings("unused")
-    public boolean matchesValue(A aValue, QueryOptions queryOptions){
-        Pattern pattern = Pattern.compile(aValue);
-        Matcher matcher = pattern.matcher(path);
-        return matcher.find(0);
+    public boolean matchesPath(A aValue, QueryOptions queryOptions, PathContainer requestUri){
+        return aValue.matches(requestUri);
     }
 
 }

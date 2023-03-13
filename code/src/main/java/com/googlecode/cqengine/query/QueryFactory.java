@@ -29,6 +29,7 @@ import com.googlecode.cqengine.query.logical.Or;
 import com.googlecode.cqengine.query.option.*;
 import com.googlecode.cqengine.query.simple.*;
 import net.jodah.typetools.TypeResolver;
+import org.springframework.web.util.pattern.PathPattern;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -335,7 +336,15 @@ public class QueryFactory {
         return new StringMatchesRegex<O, A>(attribute, Pattern.compile(regex));
     }
 
-    public static <O, A extends String> PathMatches<O, A> matchesPath(Attribute<O, A> attribute, String path) {
+    /**
+     * Creates a {@link PathMatches} query which asserts that an attribute's value matches a regular expression.
+     * @param attribute
+     * @param path
+     * @return
+     * @param <O>
+     * @param <A>
+     */
+    public static <O, A extends PathPattern> PathMatches<O, A> matchesPath(Attribute<O, A> attribute, String path) {
         return new PathMatches<O, A>(attribute, path);
     }
 
