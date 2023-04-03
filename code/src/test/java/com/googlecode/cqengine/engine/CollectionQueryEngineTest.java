@@ -60,7 +60,6 @@ public class CollectionQueryEngineTest {
     public void testUnexpectedQueryTye() {
         CollectionQueryEngine<Car> queryEngine = new CollectionQueryEngine<Car>();
         queryEngine.init(emptyObjectStore(), queryOptionsWithOnHeapPersistence());
-
         queryEngine.retrieveRecursive(new Query<Car>() {
             @Override
             public boolean matches(Car object, QueryOptions queryOptions) {

@@ -350,6 +350,18 @@ public class QueryFactory {
 
 
     /**
+     * Creates a {@link PathMatches} query which asserts that an attribute's value matches a regular expression.
+     * @param attribute
+     * @param path
+     * @return
+     * @param <O>
+     * @param <A>
+     */
+    public static <O, A extends CharSequence> StringPathMatches<O, A> strMatchesPath(Attribute<O, A> attribute, A path) {
+        return new StringPathMatches<O, A>(attribute, path);
+    }
+
+    /**
      * Creates an {@link Has} query which asserts that an attribute has a value (is not null).
      * <p/>
      * To accelerate {@code has(...)} queries, add a Standing Query Index on {@code has(...)}.

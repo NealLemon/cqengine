@@ -49,13 +49,13 @@ public class Introduction {
         cars.add(new Car(3, "honda civic", "has a flat tyre and high mileage", Arrays.asList("radio")));
 
         // -------------------------- Run some queries --------------------------
-        System.out.println("Cars whose name ends with 'vic' or whose id is less than 2:");
-        Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
-        cars.retrieve(query1).forEach(System.out::println);
-
-        System.out.println("\nCars whose flat tyre can be replaced:");
-        Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
-        cars.retrieve(query2).forEach(System.out::println);
+//        System.out.println("Cars whose name ends with 'vic' or whose id is less than 2:");
+//        Query<Car> query1 = or(endsWith(Car.NAME, "vic"), lessThan(Car.CAR_ID, 2));
+//        cars.retrieve(query1).forEach(System.out::println);
+//
+//        System.out.println("\nCars whose flat tyre can be replaced:");
+//        Query<Car> query2 = and(contains(Car.DESCRIPTION, "flat tyre"), equal(Car.FEATURES, "spare tyre"));
+//        cars.retrieve(query2).forEach(System.out::println);
 
 
         System.out.println("\nCars which have a sunroof or a radio but are not dirty:");

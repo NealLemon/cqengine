@@ -28,6 +28,7 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.Has;
 import com.googlecode.cqengine.query.simple.In;
+import com.googlecode.cqengine.query.simple.PathMatches;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.filter.QuantizedResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
@@ -38,6 +39,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.springframework.web.util.pattern.PathPattern;
 
 import static com.googlecode.cqengine.index.support.IndexSupport.deduplicateIfNecessary;
 
@@ -75,6 +78,7 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
             add(Equal.class);
             add(In.class);
             add(Has.class);
+            add(PathMatches.class);
         }});
     }
 
@@ -101,7 +105,11 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         Class<?> queryClass = query.getClass();
-        if (queryClass.equals(Equal.class)) {
+        if(queryClass.equals(PathMatches.class)) {
+            PathMatches<O, PathPattern> pathMatches = (PathMatches<O, PathPattern>) query;
+            return retrievePathMatch(pathMatches, queryOptions);
+        }
+        else if(queryClass.equals(Equal.class)) {
             @SuppressWarnings("unchecked")
             Equal<O, A> equal = (Equal<O, A>) query;
             return retrieveEqual(equal, queryOptions);
@@ -117,6 +125,53 @@ public class HashIndex<A, O> extends AbstractMapBasedAttributeIndex<A, O, Concur
         else {
             throw new IllegalArgumentException("Unsupported query: " + query);
         }
+    }
+
+    private ResultSet<O> retrievePathMatch(PathMatches<O, PathPattern> pathMatches, QueryOptions queryOptions) {
+        return new ResultSet<O>() {
+
+            @Override
+            public Iterator<O> iterator() {
+                ResultSet<O> rs = indexMap.get(pathMatches.getValue());
+                return rs == null ? Collections.<O>emptySet().iterator() : filterForQuantization(rs, pathMatches, queryOptions).iterator();
+            }
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = indexMap.get(pathMatches.getValue());
+                return rs != null && filterForQuantization(rs, pathMatches, queryOptions).contains(object);
+            }
+            @Override
+            public boolean matches(O object) {
+                return pathMatches.matches(object, queryOptions);
+            }
+            @Override
+            public int size() {
+                ResultSet<O> rs = indexMap.get(pathMatches.getValue());
+                return rs == null ? 0 : filterForQuantization(rs, pathMatches, queryOptions).size();
+            }
+            @Override
+            public int getRetrievalCost() {
+                return INDEX_RETRIEVAL_COST;
+            }
+            @Override
+            public int getMergeCost() {
+                // Return size of entire stored set as merge cost...
+                ResultSet<O> rs = indexMap.get(pathMatches.getValue());
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public void close() {
+                // No op.
+            }
+            @Override
+            public Query<O> getQuery() {
+                return pathMatches;
+            }
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+        };
     }
 
     protected ResultSet<O> retrieveIn(final In<O, A> in, final QueryOptions queryOptions) {

@@ -29,7 +29,7 @@ import org.springframework.web.util.pattern.PathPattern;
  */
 public class PathMatches<O, A extends PathPattern> extends SimpleQuery<O, A> {
 
-    private final String path;
+    private final String value;
 
     /**
      * Creates a new {@link PathMatches} initialized to make assertions on whether values of the specified
@@ -38,22 +38,26 @@ public class PathMatches<O, A extends PathPattern> extends SimpleQuery<O, A> {
      * @param attribute The attribute on which the assertion is to be made
    //  * @param regexPattern The regular expression pattern with which values of the attribute should be tested
      */
-    public PathMatches(Attribute<O, A> attribute, String path) {
+    public PathMatches(Attribute<O, A> attribute, String value) {
         super(attribute);
-        this.path = path;
+        this.value = value;
     }
 
 
+    public String getValue() {
+        return value;
+    }
+
     @Override
     protected boolean matchesSimpleAttribute(SimpleAttribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        PathContainer requestUri = PathContainer.parsePath(path);
+        PathContainer requestUri = PathContainer.parsePath(value);
         A attributeValue = attribute.getValue(object, queryOptions);
         return matchesPath(attributeValue, queryOptions, requestUri);
     }
 
     @Override
     protected boolean matchesNonSimpleAttribute(Attribute<O, A> attribute, O object, QueryOptions queryOptions) {
-        PathContainer requestUri = PathContainer.parsePath(path);
+        PathContainer requestUri = PathContainer.parsePath(value);
         for (A attributeValue : attribute.getValues(object, queryOptions)) {
             if (matchesPath(attributeValue, queryOptions,requestUri)) {
                 return true;
@@ -65,7 +69,7 @@ public class PathMatches<O, A extends PathPattern> extends SimpleQuery<O, A> {
     @Override
     protected int calcHashCode() {
         int result = attribute.hashCode();
-        result = 31 * result + path.hashCode();
+        result = 31 * result + value.hashCode();
         return result;
     }
 

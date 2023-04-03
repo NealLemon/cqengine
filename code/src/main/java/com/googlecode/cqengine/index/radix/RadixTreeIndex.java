@@ -30,6 +30,7 @@ import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.query.simple.Equal;
 import com.googlecode.cqengine.query.simple.In;
+import com.googlecode.cqengine.query.simple.StringPathMatches;
 import com.googlecode.cqengine.query.simple.StringStartsWith;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.googlecode.cqengine.resultset.stored.StoredResultSet;
@@ -77,6 +78,7 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
             add(Equal.class);
             add(In.class);
             add(StringStartsWith.class);
+            add(StringPathMatches.class);
         }});
         this.nodeFactory = nodeFactory;
         this.tree = new ConcurrentRadixTree<StoredResultSet<O>>(nodeFactory);
@@ -111,6 +113,9 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
             @SuppressWarnings("unchecked")
             In<O, A> in = (In<O, A>) query;
             return retrieveIn(in, queryOptions, tree);
+        }else if(queryClass.equals(StringPathMatches.class)){
+            final StringPathMatches<O, A> stringPathMatches = (StringPathMatches<O, A>) query;
+            return retrievePathMatches(stringPathMatches, queryOptions, tree);
         }
         else if (queryClass.equals(StringStartsWith.class)) {
             @SuppressWarnings("unchecked")
@@ -165,6 +170,52 @@ public class RadixTreeIndex<A extends CharSequence, O> extends AbstractAttribute
         else {
             throw new IllegalArgumentException("Unsupported query: " + query);
         }
+    }
+
+    private ResultSet<O> retrievePathMatches(StringPathMatches<O,A> stringPathMatches, QueryOptions queryOptions, RadixTree<StoredResultSet<O>> tree) {
+        return new ResultSet<O>() {
+            @Override
+            public Iterator<O> iterator() {
+                ResultSet<O> rs = tree.getValueForWildcardKey(stringPathMatches.getValue());
+                return rs == null ? Collections.<O>emptySet().iterator() : rs.iterator();
+            }
+            @Override
+            public boolean contains(O object) {
+                ResultSet<O> rs = tree.getValueForWildcardKey(stringPathMatches.getValue());
+                return rs != null && rs.contains(object);
+            }
+            @Override
+            public boolean matches(O object) {
+                return stringPathMatches.matches(object, queryOptions);
+            }
+            @Override
+            public int size() {
+                ResultSet<O> rs = tree.getValueForWildcardKey(stringPathMatches.getValue());
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public int getRetrievalCost() {
+                return INDEX_RETRIEVAL_COST;
+            }
+            @Override
+            public int getMergeCost() {
+                // Return size of entire stored set as merge cost...
+                ResultSet<O> rs = tree.getValueForWildcardKey(stringPathMatches.getValue());
+                return rs == null ? 0 : rs.size();
+            }
+            @Override
+            public void close() {
+                // No op.
+            }
+            @Override
+            public Query<O> getQuery() {
+                return stringPathMatches;
+            }
+            @Override
+            public QueryOptions getQueryOptions() {
+                return queryOptions;
+            }
+        };
     }
 
     protected ResultSet<O> retrieveIn(final In<O, A> in, final QueryOptions queryOptions, final RadixTree<StoredResultSet<O>> tree) {
